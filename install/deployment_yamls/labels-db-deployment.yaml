@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: labels-db
+  name: labels-db
+  namespace: citrix-system
+spec:
+  selector:
+    matchLabels:
+      app: labels-db
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: labels-db
+    spec:
+      serviceAccount: labels-db
+      containers:
+      - image: citrix/labels-db:latest
+        imagePullPolicy: IfNotPresent
+        name: labels-db
+        ports:
+        - containerPort: 8080
+        resources: {}
+      restartPolicy: Always
+status: {}

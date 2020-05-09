@@ -1,0 +1,6 @@
+
+Printing pods' info:
+https://stackoverflow.com/questions/41545123/how-to-get-pods-under-the-service-with-client-go-the-client-library-of-kubernete
+
+Listing labels:
+https://github.com/kubernetes/client-go/blob/master/tools/cache/listers.go
