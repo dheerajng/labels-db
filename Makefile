@@ -1,5 +1,5 @@
 docker:
-	DOCKER_BUILDKIT=1 docker build -t citrix/labels-db .
+	DOCKER_BUILDKIT=1 docker build -t dheerajng/labels-db .
 
 docker-run:
 	(docker rm -f podlabels-db) || true

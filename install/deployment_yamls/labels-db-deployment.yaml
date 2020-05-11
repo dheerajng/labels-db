@@ -18,7 +18,7 @@ spec:
     spec:
       serviceAccount: labels-db
       containers:
-      - image: citrix/labels-db:latest
+      - image: dheerajng/labels-db:latest
         imagePullPolicy: IfNotPresent
         name: labels-db
         ports:
