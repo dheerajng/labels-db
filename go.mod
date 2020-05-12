@@ -3,6 +3,7 @@ module labels-db
 go 1.13
 
 require (
+	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/sirupsen/logrus v1.2.0
 	k8s.io/api v0.0.0
 	k8s.io/apimachinery v0.0.0
