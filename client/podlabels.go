@@ -236,7 +236,6 @@ func GetOneFromDB(IP string) (*PodDetails, error) {
 func GetMultiFromDB(IPs []string) ([]PodDetails, error) {
 	var values []rc.PodDBValue
 	var podsInfo []PodDetails
-	logrus.Println("len(podsInfo)", len(podsInfo))
 	values, err := rc.GetMultiStruct(IPs)
 	if err != nil {
 		logrus.Errorf("Could not retrieve details from DB for %v", IPs)
@@ -245,6 +244,5 @@ func GetMultiFromDB(IPs []string) ([]PodDetails, error) {
 	for i, value := range values {
 		podsInfo = append(podsInfo, PodDetails{IP: string(IPs[i]), PodName: value.PodName, Service: value.Service, Namespace: value.Namespace, Labels: value.Labels})
 	}
-	logrus.Println("len(podsInfo)", len(podsInfo))
 	return podsInfo, nil
 }

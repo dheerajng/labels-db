@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strings"
 )
 
 const defaultPort = "8080"
@@ -49,6 +50,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getLabelsForIP(w http.ResponseWriter, r *http.Request) {
+	comma := ","
 	// Only GET method allowed, return a 405 'Method Not Allowed' response.
 	log.Printf("Request came to the getLabelsForIP handler.")
 	if r.Method != http.MethodGet {
@@ -65,9 +67,13 @@ func getLabelsForIP(w http.ResponseWriter, r *http.Request) {
 	log.Println("Query:", q)
 	ipset := q["ip"]
 	log.Println("Requested IPs:", ipset, "length: ", len(ipset))
+	// If no IPs are present in arguments, return 4xx error
+	// If IPs are separated by comma (,) then retrieve each IP
 	if len(ipset) == 0 {
 		http.Error(w, http.StatusText(400), 400)
 		return
+	} else if len(ipset) == 1 && strings.Contains(ipset[0], comma) { // one argument with multiple IPs
+		ipset = strings.Split(q["ip"][0], comma)
 	}
 	// Validate that the ip is a valid ip by trying to convert it,
 	// returning a 400 Bad Request response if the conversion fails.
