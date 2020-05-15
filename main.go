@@ -4,6 +4,7 @@ import (
 	"labels-db/client"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/sirupsen/logrus"
 )
@@ -18,11 +19,14 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
-	// List down Pods' labels
-	if err = ldbClient.GetPodsLabels(); err != nil {
-		panic(err.Error())
-	}
-	if err = ldbClient.GetSvcDetails(); err != nil {
+	// Wait for sometime for redis DB to come up
+	time.Sleep(10 * time.Second)
+	// Create Labels DB
+	if err = ldbClient.CreateLablesDB(); err != nil {
 		logrus.Errorf("Could not retrieve Service details")
+		return
 	}
+
+	// Create a HTTP Server
+	client.CreateLabelsServer()
 }

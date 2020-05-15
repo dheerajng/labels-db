@@ -13,10 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// PodDBKey is the key in DB
-type PodDBKey string
-
-// PodDBValue is value of PodDBKey
+// PodDBValue is value in DB where key is IP in string format
 type PodDBValue struct {
 	PodName   string
 	Service   string
@@ -88,8 +85,32 @@ func Ping() error {
 	return nil
 }
 
+// GetMultiStruct retrieves multiple entries from DB
+func GetMultiStruct(multiKeys []string) ([]PodDBValue, error) {
+	conn := Pool.Get()
+	defer conn.Close()
+
+	var data []PodDBValue
+	var keys []interface{}
+	for _, k := range multiKeys {
+		keys = append(keys, k)
+	}
+	val, err := redis.ByteSlices(conn.Do("MGET", keys...))
+	if err != nil {
+		logrus.Errorf("Could not retrive multiple values. %s", err.Error())
+		return nil, err
+	}
+	for _, v := range val {
+		d := PodDBValue{}
+		_ = json.Unmarshal([]byte(v), &d)
+		data = append(data, d)
+	}
+	fmt.Println("GetMultiStruct: ", data)
+	return data, nil
+}
+
 // GetStruct retrieves entry from DB
-func GetStruct(key PodDBKey) (PodDBValue, error) {
+func GetStruct(key string) (PodDBValue, error) {
 	conn := Pool.Get()
 	defer conn.Close()
 
@@ -101,11 +122,12 @@ func GetStruct(key PodDBKey) (PodDBValue, error) {
 		return data, fmt.Errorf("error getting key %s: %v", key, err)
 	}
 	err = json.Unmarshal([]byte(val), &data)
+	fmt.Println("GetStruct: ", data)
 	return data, err
 }
 
 // SetStruct creates an entry in DB
-func SetStruct(key PodDBKey, value PodDBValue) error {
+func SetStruct(key string, value PodDBValue) error {
 	conn := Pool.Get()
 	defer conn.Close()
 

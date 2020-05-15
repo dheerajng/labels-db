@@ -31,11 +31,11 @@ type K8sClient struct {
 
 // PodDetails stores info for pod IP
 type PodDetails struct {
-	IP        string
-	PodName   string
-	Service   string
-	Namespace string
-	Labels    map[string]string
+	IP        string            `json:"ip"`
+	PodName   string            `json:"podname"`
+	Service   string            `json:"service"`
+	Namespace string            `json:"namespace"`
+	Labels    map[string]string `json:"labels"`
 }
 
 // NewK8sClient creates kubernetes client which will be used to retrieve labels' info from API server
@@ -201,8 +201,17 @@ func (lClient *K8sClient) GetDeploymentDetails(namespace string, selector map[st
 	return nil
 }
 
+// CreateLablesDB will generate DB entries for each running pod IP
+func (lClient *K8sClient) CreateLablesDB() error {
+	if err := lClient.GetSvcDetails(); err != nil {
+		logrus.Errorf("Could not create Labels Database. %s", err.Error())
+		return err
+	}
+	return nil
+}
+
 func insertInDB(podinfo PodDetails) error {
-	key := rc.PodDBKey(podinfo.IP)
+	key := podinfo.IP
 	value := rc.PodDBValue{PodName: podinfo.PodName, Service: podinfo.Service, Namespace: podinfo.Namespace, Labels: podinfo.Labels}
 	err := rc.SetStruct(key, value)
 	if err != nil {
@@ -211,13 +220,31 @@ func insertInDB(podinfo PodDetails) error {
 	return nil
 }
 
-func getFromDB(IP string) (*PodDetails, error) {
+// GetOneFromDB will retrieve the details for single IP
+func GetOneFromDB(IP string) (*PodDetails, error) {
 	podinfo := PodDetails{}
-	value, err := rc.GetStruct(rc.PodDBKey(IP))
+	value, err := rc.GetStruct(IP)
 	if err != nil {
 		logrus.Errorf("Could not retrieve details from DB for IP: %s", IP)
 		return nil, err
 	}
-	podinfo = PodDetails{IP: IP, PodName: value.PodName, Service: value.Service, Namespace: value.Namespace, Labels: value.Labels}
+	podinfo = PodDetails{IP: string(IP), PodName: value.PodName, Service: value.Service, Namespace: value.Namespace, Labels: value.Labels}
 	return &podinfo, nil
+}
+
+// GetMultiFromDB will retrieve the detais for multiple IPs
+func GetMultiFromDB(IPs []string) ([]PodDetails, error) {
+	var values []rc.PodDBValue
+	var podsInfo []PodDetails
+	logrus.Println("len(podsInfo)", len(podsInfo))
+	values, err := rc.GetMultiStruct(IPs)
+	if err != nil {
+		logrus.Errorf("Could not retrieve details from DB for %v", IPs)
+		return nil, err
+	}
+	for i, value := range values {
+		podsInfo = append(podsInfo, PodDetails{IP: string(IPs[i]), PodName: value.PodName, Service: value.Service, Namespace: value.Namespace, Labels: value.Labels})
+	}
+	logrus.Println("len(podsInfo)", len(podsInfo))
+	return podsInfo, nil
 }
